@@ -107,7 +107,7 @@ def draw_airq_gauge(score: int, arabic: bool=False):
     # RED → YELLOW → BLUE (match ACT)
     cmap = LinearSegmentedColormap.from_list(
         "airq_gradient",
-        ["#EF4444", "#FDE047", "#3B82F6"]
+        ["#3B82F6", "#FDE047", "#EF4444"]
     )
 
     for i in range(len(xs)-1):
