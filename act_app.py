@@ -111,43 +111,42 @@ def draw_act_gauge_ar(score: int):
 
     st.pyplot(fig)
 
-# ---------- AIRQ gauge (0–10) ----------
-
 def draw_airq_gauge(score: int, arabic: bool = False):
-    """AIRQ gauge – English or Arabic."""
+    """AIRQ gauge – with RED on the left (poor control) just like ACT."""
     fig, ax = plt.subplots(figsize=(10, 2))
     xmin, xmax = 0, 10
     xs = np.linspace(xmin, xmax, 500)
 
-    # BLUE → YELLOW → RED
+    # RED → YELLOW → BLUE  (same as ACT)
     cmap = LinearSegmentedColormap.from_list(
         "airq_gradient",
-        ["#3B82F6", "#FDE047", "#EF4444"]
+        ["#EF4444", "#FDE047", "#3B82F6"]  # flipped orientation
     )
 
     for i in range(len(xs) - 1):
         ax.axvspan(xs[i], xs[i+1], 0.4, 0.6, color=cmap(i/len(xs)), alpha=0.9)
 
-    # boundaries: 0–1 (well), 2–4 (not well), 5–10 (very poorly)
-    ax.axvline(1.5, 0.35, 0.65, color="black", linewidth=1)
-    ax.axvline(4.5, 0.35, 0.65, color="black", linewidth=1)
+    # boundaries between categories
+    ax.axvline(1.5, 0.35, 0.65, color="black", linewidth=1)  # Well ↔ Not well
+    ax.axvline(4.5, 0.35, 0.65, color="black", linewidth=1)  # Not well ↔ Very poorly
 
-    # score marker
+    # Score marker
     ax.axvline(score, 0.35, 0.65, color="black", linewidth=4)
 
-    # ticks 0–10 (numeric LTR)
+    # ticks
     ax.set_xticks(range(0, 11))
     ax.set_xticklabels(range(0, 11), fontsize=6)
 
+    # Labels
     if not arabic:
-        ax.text(0.5,  0.75, "Well controlled",        ha="center", fontsize=10)
+        ax.text(0.5,  0.75, "Very poorly controlled", ha="center", fontsize=10)
         ax.text(3.0,  0.75, "Not well controlled",    ha="center", fontsize=10)
-        ax.text(7.5,  0.75, "Very poorly controlled", ha="center", fontsize=10)
+        ax.text(7.5,  0.75, "Well controlled",        ha="center", fontsize=10)
         ax.set_xlabel("AIRQ score (0–10)")
     else:
-        ax.text(0.5,  0.75, rtl("سيطرة جيدة"),        ha="center", fontsize=10)
-        ax.text(3.0,  0.75, rtl("سيطرة غير جيدة"),    ha="center", fontsize=10)
-        ax.text(7.5,  0.75, rtl("سيطرة ضعيفة جداً"),  ha="center", fontsize=10)
+        ax.text(0.5,  0.75, rtl("سيطرة ضعيفة جداً"), ha="center", fontsize=10)
+        ax.text(3.0,  0.75, rtl("سيطرة غير جيدة"),   ha="center", fontsize=10)
+        ax.text(7.5,  0.75, rtl("سيطرة جيدة"),      ha="center", fontsize=10)
         ax.set_xlabel(rtl("مجموع نقاط AIRQ (0–10)"))
 
     ax.set_xlim(xmin, xmax)
@@ -157,7 +156,6 @@ def draw_airq_gauge(score: int, arabic: bool = False):
         spine.set_visible(False)
 
     st.pyplot(fig)
-
 # ---------- Streamlit page & tabs ----------
 
 st.set_page_config(page_title="Asthma Tools", layout="wide")
