@@ -116,7 +116,7 @@ def draw_airq_gauge(score: int, arabic=False):
         ax.set_xlabel("AIRQ score (0–10)")
     else:
         ax.text(0.5, 0.75, rtl("سيطرة جيدة"), ha="center", fontsize=12)
-        ax.text(3.0, 0.75, rtl("سيطرة غير جيدة"), ha="center", fontsize=12)
+        ax.text(3.0, 0.75, rtl("سيطرة جزئية"), ha="center", fontsize=12)
         ax.text(7.5, 0.75, rtl("سيطرة ضعيفة"), ha="center", fontsize=12)
         ax.set_xlabel(rtl("مجموع النقاط (0–10)"))
 
