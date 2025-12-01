@@ -100,25 +100,31 @@ def draw_act_gauge_ar(score: int):
 # ---------- AIRQ Gauge (English & Arabic) ----------
 
 def draw_airq_gauge(score: int, arabic: bool=False):
-    fig, ax = plt.subplots(figsize=(10, 2))
+    """AIRQ gauge – low score = good (blue), high score = bad (red)."""
+
+fig, ax = plt.subplots(figsize=(10, 2))
     xmin, xmax = 0, 10
     xs = np.linspace(xmin, xmax, 500)
 
-    # BLUE → YELLOW → RED (0 = well, 10 = very poorly controlled)
+    # BLUE → YELLOW → RED (correct AIRQ meaning)
     cmap = LinearSegmentedColormap.from_list(
         "airq_gradient",
-        ["#3B82F6", "#FDE047", "#EF4444"]  # Blue → Yellow → Red
+        ["#3B82F6", "#FDE047", "#EF4444"]  # Well → Not well → Poorly controlled
     )
 
-    for i in range(len(xs)-1):
-        ax.axvspan(xs[i], xs[i+1], 0.4, 0.6, color=cmap(i/len(xs)), alpha=0.9)
+    # Draw gradient
+    for i in range(len(xs) - 1):
+        x_start = xs[i]
+        x_end   = xs[i + 1]
+        color = cmap(i / len(xs))
+        ax.axvspan(x_start, x_end, 0.4, 0.6, color=color, alpha=0.9)
 
-    # Boundaries for categories:
-    # 0–1  = well controlled
-    # 2–4  = not well controlled
-    # 5–10 = very poorly controlled
-    ax.axvline(1.5, 0.35, 0.65, color="white", linewidth=1)
-    ax.axvline(4.5, 0.35, 0.65, color="white", linewidth=1)
+    # Category boundaries
+    # 0–1  = Well controlled
+    # 2–4  = Not well controlled
+    # 5–10 = Poorly controlled
+    ax.axvline(1.5, 0.35, 0.65, color="white", linewidth=1) # Well ↔ Not well
+    ax.axvline(4.5, 0.35, 0.65, color="white", linewidth=1) # Not well ↔ Poorly
    
    # Score marker
     ax.axvline(score, 0.35, 0.65, color="black", linewidth=4)
@@ -127,25 +133,22 @@ def draw_airq_gauge(score: int, arabic: bool=False):
     ax.set_xticks(range(0, 11))
     ax.set_xticklabels(range(0, 11), fontsize=6)
 
+    # Category Labels
         if not arabic:
         ax.text(0.5,  0.75, "Well controlled",        ha="center", fontsize=10)
         ax.text(3.0,  0.75, "Not well controlled",    ha="center", fontsize=10)
-        ax.text(7.5,  0.75, "Very poorly controlled", ha="center", fontsize=10)
+        ax.text(7.5,  0.75, "Poorly controlled", ha="center", fontsize=10)
         ax.set_xlabel("AIRQ score (0–10)")
     else:
         ax.text(0.5, 0.75, rtl("سيطرة جيدة"), ha="center", fontsize=12)
         ax.text(3.0, 0.75, rtl("سيطرة غير جيدة"), ha="center", fontsize=12)
         ax.text(7.5,  0.75, rtl("سيطرة ضعيفة جداً"),  ha="center", fontsize=12)
         ax.set_xlabel(rtl("مجموع النقاط (0–10)"))
-    else:
-        ax.text(0.5, 0.75, "Poorly controlled", ha="center", fontsize=10)
-        ax.text(3.0, 0.75, "Not well controlled", ha="center", fontsize=10)
-        ax.text(7.5, 0.75, "Well controlled", ha="center", fontsize=10)
-        ax.set_xlabel("AIRQ score (0–10)")
-
+    
     ax.set_xlim(xmin, xmax)
     ax.set_yticks([])
 
+# Remove borders
     for spine in ax.spines.values():
         spine.set_visible(False)
 
