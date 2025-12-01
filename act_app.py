@@ -3,21 +3,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 
-# For proper Arabic rendering in matplotlib
-try:
-    import arabic_reshaper
-    from bidi.algorithm import get_display
+# Arabic support for matplotlib text
+import arabic_reshaper
+from bidi.algorithm import get_display
 
-    def rtl(text: str) -> str:
-        # reshape + reorder for correct RTL display
-        return get_display(arabic_reshaper.reshape(text))
-except ImportError:
-    # Fallback: if libraries not installed, just return text as-is
-    def rtl(text: str) -> str:
-        return text
+def rtl(text: str) -> str:
+    """Return correctly shaped RTL Arabic text for matplotlib."""
+    return get_display(arabic_reshaper.reshape(text))
 
-# ---------- ACT scoring helper ----------
+# ---------- Scoring helpers ----------
+
 def act_level(score: int) -> str:
+    """ACT categories: 5–15 poorly, 16–19 partially, 20–25 well controlled."""
     if score <= 15:
         return "Poorly controlled"
     elif score <= 19:
@@ -25,8 +22,8 @@ def act_level(score: int) -> str:
     else:
         return "Well controlled"
 
-# ---------- AIRQ scoring helper ----------
 def airq_level(score: int) -> str:
+    """AIRQ categories: 0–1 well, 2–4 not well, 5–10 very poorly controlled."""
     if score <= 1:
         return "Well controlled"
     elif score <= 4:
@@ -34,10 +31,11 @@ def airq_level(score: int) -> str:
     else:
         return "Very poorly controlled"
 
-# ---------- ACT gauge (5–25) — ENGLISH ----------
-def draw_act_gauge_en(score: int):
-    fig, ax = plt.subplots(figsize=(10, 2))
+# ---------- ACT gauges (5–25) ----------
 
+def draw_act_gauge_en(score: int):
+    """ACT gauge – English."""
+    fig, ax = plt.subplots(figsize=(10, 2))
     xmin, xmax = 5, 25
     xs = np.linspace(xmin, xmax, 500)
 
@@ -47,12 +45,9 @@ def draw_act_gauge_en(score: int):
     )
 
     for i in range(len(xs) - 1):
-        x_start = xs[i]
-        x_end   = xs[i + 1]
-        color = cmap(i / len(xs))
-        ax.axvspan(x_start, x_end, 0.4, 0.6, color=color, alpha=0.9)
+        ax.axvspan(xs[i], xs[i+1], 0.4, 0.6, color=cmap(i/len(xs)), alpha=0.9)
 
-    # boundaries
+    # boundaries: 5–15, 16–19, 20–25
     ax.axvline(15.5, 0.35, 0.65, color="black", linewidth=1)
     ax.axvline(19.5, 0.35, 0.65, color="black", linewidth=1)
 
@@ -63,7 +58,7 @@ def draw_act_gauge_en(score: int):
     ax.set_xticks(range(5, 26))
     ax.set_xticklabels(range(5, 26), fontsize=6)
 
-    # English labels
+    # labels
     ax.text(10,   0.75, "Poorly controlled",    ha="center", fontsize=10)
     ax.text(17.5, 0.75, "Partially controlled", ha="center", fontsize=10)
     ax.text(23,   0.75, "Well controlled",      ha="center", fontsize=10)
@@ -77,10 +72,9 @@ def draw_act_gauge_en(score: int):
 
     st.pyplot(fig)
 
-# ---------- ACT gauge (5–25) — ARABIC ----------
 def draw_act_gauge_ar(score: int):
+    """ACT gauge – Arabic."""
     fig, ax = plt.subplots(figsize=(10, 2))
-
     xmin, xmax = 5, 25
     xs = np.linspace(xmin, xmax, 500)
 
@@ -90,10 +84,7 @@ def draw_act_gauge_ar(score: int):
     )
 
     for i in range(len(xs) - 1):
-        x_start = xs[i]
-        x_end   = xs[i + 1]
-        color = cmap(i / len(xs))
-        ax.axvspan(x_start, x_end, 0.4, 0.6, color=color, alpha=0.9)
+        ax.axvspan(xs[i], xs[i+1], 0.4, 0.6, color=cmap(i/len(xs)), alpha=0.9)
 
     # الحدود بين الفئات
     ax.axvline(15.5, 0.35, 0.65, color="black", linewidth=1)
@@ -107,9 +98,9 @@ def draw_act_gauge_ar(score: int):
     ax.set_xticklabels(range(5, 26), fontsize=6)
 
     # تسميات عربية صحيحة باستخدام rtl()
-    ax.text(10,   0.75, rtl("سيطرة ضعيفة"),       ha="center", fontsize=10)
-    ax.text(17.5, 0.75, rtl("سيطرة جزئية"),       ha="center", fontsize=10)
-    ax.text(23,   0.75, rtl("سيطرة جيدة"),        ha="center", fontsize=10)
+    ax.text(10,   0.75, rtl("سيطرة ضعيفة"),      ha="center", fontsize=10)
+    ax.text(17.5, 0.75, rtl("سيطرة جزئية"),      ha="center", fontsize=10)
+    ax.text(23,   0.75, rtl("سيطرة جيدة"),       ha="center", fontsize=10)
 
     ax.set_xlim(xmin, xmax)
     ax.set_yticks([])
@@ -120,62 +111,15 @@ def draw_act_gauge_ar(score: int):
 
     st.pyplot(fig)
 
-
 # ---------- AIRQ gauge (0–10) ----------
+
 def draw_airq_gauge(score: int, arabic: bool = False):
-    fig, ax = plt.subplots(figsize=(10, 2))
-
-    xmin, xmax = 0, 10
-    xs = np.linspace(xmin, xmax, 500)
-
-    # BLUE → YELLOW → RED gradient (low=good, high=bad)
-    cmap = LinearSegmentedColormap.from_list(
-        "airq_gradient",
-        ["#3B82F6", "#FDE047", "#EF4444"]  # Blue → Yellow → Red
-    )
-
-    for i in range(len(xs) - 1):
-        x_start = xs[i]
-        x_end = xs[i + 1]
-        color = cmap(i / len(xs))
-        ax.axvspan(x_start, x_end, 0.4, 0.6, color=color, alpha=0.9)
-
-    # Boundaries for 0–1 (well), 2–4 (not well), 5–10 (very poorly)
-    ax.axvline(1.5, 0.35, 0.65, color="black", linewidth=1)
-    ax.axvline(4.5, 0.35, 0.65, color="black", linewidth=1)
-
-    # Score marker
-    ax.axvline(score, 0.35, 0.65, color="black", linewidth=4)
-
-    # Ticks 0–10
-    ax.set_xticks(range(0, 11))
-    ax.set_xticklabels(range(0, 11), fontsize=6)
-
-    # Category labels
-    if not arabic:
-        ax.text(0.5,  0.75, "Well controlled",        ha="center", fontsize=10)
-        ax.text(3.0,  0.75, "Not well controlled",    ha="center", fontsize=10)
-        ax.text(7.5,  0.75, "Very poorly controlled", ha="center", fontsize=10)
-    else:
-        ax.text(0.5,  0.75, "سيطرة جيدة",         ha="center", fontsize=10)
-        ax.text(3.0,  0.75, "سيطرة غير جيدة",      ha="center", fontsize=10)
-        ax.text(7.5,  0.75, "سيطرة ضعيفة جدًا",    ha="center", fontsize=10)
-
-    ax.set_xlim(xmin, xmax)
-    ax.set_yticks([])
-    ax.set_xlabel("AIRQ score (0–10)" if not arabic else "مجموع نقاط AIRQ (0–10)")
-
-    for spine in ax.spines.values():
-        spine.set_visible(False)
-
-    st.pyplot(fig)
-# ---------- AIRQ gauge (0–10) ----------
-def draw_airq_gauge(score: int, arabic: bool = False):
+    """AIRQ gauge – English or Arabic."""
     fig, ax = plt.subplots(figsize=(10, 2))
     xmin, xmax = 0, 10
     xs = np.linspace(xmin, xmax, 500)
 
-    # Gradient BLUE → YELLOW → RED
+    # BLUE → YELLOW → RED
     cmap = LinearSegmentedColormap.from_list(
         "airq_gradient",
         ["#3B82F6", "#FDE047", "#EF4444"]
@@ -184,22 +128,26 @@ def draw_airq_gauge(score: int, arabic: bool = False):
     for i in range(len(xs) - 1):
         ax.axvspan(xs[i], xs[i+1], 0.4, 0.6, color=cmap(i/len(xs)), alpha=0.9)
 
+    # boundaries: 0–1 (well), 2–4 (not well), 5–10 (very poorly)
     ax.axvline(1.5, 0.35, 0.65, color="black", linewidth=1)
     ax.axvline(4.5, 0.35, 0.65, color="black", linewidth=1)
+
+    # score marker
     ax.axvline(score, 0.35, 0.65, color="black", linewidth=4)
 
+    # ticks 0–10 (numeric LTR)
     ax.set_xticks(range(0, 11))
     ax.set_xticklabels(range(0, 11), fontsize=6)
 
     if not arabic:
-        ax.text(0.5,  0.75, "Well controlled", ha="center", fontsize=10)
-        ax.text(3.0,  0.75, "Not well controlled", ha="center", fontsize=10)
-        ax.text(7.5, 0.75, "Very poorly controlled", ha="center", fontsize=10)
+        ax.text(0.5,  0.75, "Well controlled",        ha="center", fontsize=10)
+        ax.text(3.0,  0.75, "Not well controlled",    ha="center", fontsize=10)
+        ax.text(7.5,  0.75, "Very poorly controlled", ha="center", fontsize=10)
         ax.set_xlabel("AIRQ score (0–10)")
     else:
-        ax.text(0.5,  0.75, rtl("سيطرة جيدة"),       ha="center", fontsize=10)
-        ax.text(3.0,  0.75, rtl("سيطرة غير جيدة"),   ha="center", fontsize=10)
-        ax.text(7.5, 0.75, rtl("سيطرة ضعيفة جداً"), ha="center", fontsize=10)
+        ax.text(0.5,  0.75, rtl("سيطرة جيدة"),        ha="center", fontsize=10)
+        ax.text(3.0,  0.75, rtl("سيطرة غير جيدة"),    ha="center", fontsize=10)
+        ax.text(7.5,  0.75, rtl("سيطرة ضعيفة جداً"),  ha="center", fontsize=10)
         ax.set_xlabel(rtl("مجموع نقاط AIRQ (0–10)"))
 
     ax.set_xlim(xmin, xmax)
@@ -210,9 +158,10 @@ def draw_airq_gauge(score: int, arabic: bool = False):
 
     st.pyplot(fig)
 
+# ---------- Streamlit page & tabs ----------
 
-# ---------- Streamlit config ----------
 st.set_page_config(page_title="Asthma Tools", layout="wide")
+
 st.title("Asthma Control & Risk Tools")
 
 tab_act_en, tab_act_ar, tab_airq_en, tab_airq_ar = st.tabs(
@@ -224,11 +173,10 @@ with tab_act_en:
     st.header("Asthma Control Test (ACT) – English")
 
     st.markdown("""
-Please answer each question based on your symptoms during the **last 4 weeks**.
+Please answer each question based on your symptoms during the **last 4 weeks**.  
 Each answer is scored from 1 to 5; higher total scores indicate better asthma control.
 """)
 
-    # --- ACT EN questions ---
     q1_en = st.radio(
         "1) During the last 4 weeks, how much of the time has your asthma kept you from getting as much done at work, school or home?",
         options=[
@@ -322,71 +270,66 @@ with tab_act_ar:
     st.header("اختبار السيطرة على الربو (ACT) – العربية")
 
     st.markdown("""
-إختبار السيطرة على الربو (من عُمْر 12 سنة فأكثر).  
+اختبار السيطرة على الربو (من عمر 12 سنة فأكثر).  
 خلال الأسابيع الأربعة الماضية، يرجى اختيار الإجابة التي تصف حالتك.
 """)
 
-    # Q1 Arabic
     q1_ar = st.radio(
-        "1) خلال الأربعة أسابيع الأخيرة، كم من الوقت منعك مرض الربو من القیام بنشاطك في العمل أو المدرسة أو المنزل؟",
+        rtl("1) خلال الأربعة أسابيع الأخيرة، كم من الوقت منعك مرض الربو من القيام بنشاطك في العمل أو المدرسة أو المنزل؟"),
         options=[
-            ("كل الأوقات", 1),
-            ("أغلب الأوقات", 2),
-            ("أحياناً", 3),
-            ("أوقات قليلة", 4),
-            ("لم يحصل أبداً", 5),
+            (rtl("كل الأوقات"), 1),
+            (rtl("أغلب الأوقات"), 2),
+            (rtl("أحياناً"), 3),
+            (rtl("أوقات قليلة"), 4),
+            (rtl("لم يحصل أبداً"), 5),
         ],
         format_func=lambda x: x[0]
     )[1]
 
-    # Q2 Arabic
     q2_ar = st.radio(
-        "2) خلال الأربعة أسابيع الماضية، كم مرة حصل لك ضيق نفس؟",
+        rtl("2) خلال الأربعة أسابيع الماضية، كم مرة حصل لك ضيق نفس؟"),
         options=[
-            ("أكثر من مرة في اليوم", 1),
-            ("مرة واحدة في اليوم", 2),
-            ("من 3 إلى 6 مرات في الأسبوع", 3),
-            ("مرة أو مرتين في الأسبوع", 4),
-            ("لم يحصل أبداً", 5),
+            (rtl("أكثر من مرة في اليوم"), 1),
+            (rtl("مرة واحدة في اليوم"), 2),
+            (rtl("من 3 إلى 6 مرات في الأسبوع"), 3),
+            (rtl("مرة أو مرتين في الأسبوع"), 4),
+            (rtl("لم يحصل أبداً"), 5),
         ],
         format_func=lambda x: x[0]
     )[1]
 
-    # Q3 Arabic
     q3_ar = st.radio(
-        "3) خلال الأربعة أسابيع الماضية، كم مرة أيقظتك أعراض الربو (الصفير، السعال، ضيق تنفس، ضيق صدر أو ألم في الصدر) أثناء الليل أو في الصباح الباكر؟",
+        rtl("3) خلال الأربعة أسابيع الماضية، كم مرة أيقظتك أعراض الربو (الصفير، السعال، ضيق تنفس، ضيق صدر أو ألم في الصدر) أثناء الليل أو في الصباح الباكر؟"),
         options=[
-            ("4 ليال أو أكثر في الأسبوع", 1),
-            ("2 إلى 3 مرات في الأسبوع", 2),
-            ("مرة واحدة في الأسبوع", 3),
-            ("مرة أو مرتين", 4),
-            ("لم يحصل أبداً", 5),
+            (rtl("4 ليال أو أكثر في الأسبوع"), 1),
+            (rtl("2 إلى 3 مرات في الأسبوع"), 2),
+            (rtl("مرة واحدة في الأسبوع"), 3),
+            (rtl("مرة أو مرتين"), 4),
+            (rtl("لم يحصل أبداً"), 5),
         ],
         format_func=lambda x: x[0]
     )[1]
 
-    # Q4 Arabic
     q4_ar = st.radio(
-        "4) خلال الأربعة أسابيع الماضية، كم مرة استخدمت بخاخة الأزمات (موسعات الشعب الهوائية)؟",
+        rtl("4) خلال الأربعة أسابيع الماضية، كم مرة استخدمت بخاخة الأزمات (موسعات الشعب الهوائية)؟"),
         options=[
-            ("3 مرات أو أكثر في اليوم", 1),
-            ("مرة واحدة أو مرتين في اليوم", 2),
-            ("2 أو 3 مرات في الأسبوع", 3),
-            ("مرة واحدة في الأسبوع أو أقل", 4),
-            ("لم يحصل أبداً", 5),
+            (rtl("3 مرات أو أكثر في اليوم"), 1),
+            (rtl("مرة واحدة أو مرتين في اليوم"), 2),
+            (rtl("2 أو 3 مرات في الأسبوع"), 3),
+            (rtl("مرة واحدة في الأسبوع أو أقل"), 4),
+            (rtl("لم يحصل أبداً"), 5),
         ],
         format_func=lambda x: x[0]
     )[1]
 
-    # Q5 Arabic (note: scored from worst to best)
     q5_ar = st.radio(
-        "5) خلال الأربعة أسابيع الماضية، ما هو تقييمك للسيطرة على الربو عندك؟",
+        rtl("5) خلال الأربعة أسابيع الماضية، ما هو تقييمك للسيطرة على الربو عندك؟"),
         options=[
-            ("تحكّم مفقود", 1),
-            ("تحكّم ضعيف", 2),
-            ("تحكّم متواضع", 3),
-            ("تحكّم جيد", 4),
-            ("تحكّم شامل", 5),
+            (rtl("تحكّم مفقود"), 1),
+            (rtl("تحكّم ضعيف"), 2),
+            (rtl("تحكّم متواضع"), 3),
+            (rtl("تحكّم جيد"), 4),
+            (rtl("تحكّم شامل"), 5),
         ],
         format_func=lambda x: x[0]
     )[1]
@@ -394,27 +337,27 @@ with tab_act_ar:
     act_ar_score = q1_ar + q2_ar + q3_ar + q4_ar + q5_ar
     act_ar_level = act_level(act_ar_score)
 
-    st.markdown(f"### مجموع نقاط ACT: **{act_ar_score}** — **{act_ar_level}**")
-    st.caption("النطاق الممكن لمجموع النقاط: 5–25. كلما زادت النقاط دلّ ذلك على سيطرة أفضل على الربو.")
+    st.markdown(rtl(f"### مجموع نقاط ACT: **{act_ar_score}** — **{act_ar_level}**"))
+    st.caption(rtl("النطاق الممكن لمجموع النقاط: 5–25. كلما زادت النقاط دلّ ذلك على سيطرة أفضل على الربو."))
 
     draw_act_gauge_ar(act_ar_score)
 
     st.markdown("---")
     st.markdown("### المراجع (ACT)")
     st.markdown("""
-1. **Nathan RA** وآخرون.  
+1. Nathan RA وآخرون.  
    *Development of the Asthma Control Test: a Survey for Assessing Asthma Control.*  
    J Allergy Clin Immunol. 2004;113(1):59–65.
 
-2. **Schatz M** وآخرون.  
+2. Schatz M وآخرون.  
    *Asthma Control Test: reliability, validity, and responsiveness in patients not previously followed by asthma specialists.*  
    J Allergy Clin Immunol. 2006;117:549–56.
 
-3. **Liu AH** وآخرون.  
+3. Liu AH وآخرون.  
    *Development and cross-sectional validation of the Childhood Asthma Control Test.*  
    J Allergy Clin Immunol. 2007;119(4):817–825.
 
-4. **Lababidi H**, **Hijaoui A**, **Zarzour M**.  
+4. Lababidi H، Hijaoui A، Zarzour M.  
    *Validation of the Arabic version of the asthma control test.*  
    Ann Thorac Med. 2008;3(2):44–47.
 """)
@@ -426,73 +369,63 @@ with tab_airq_en:
     st.markdown("""
 For each question, please select **Yes** or **No**.  
 Each **Yes = 1 point**, **No = 0 points**.  
-Total AIRQ score = 0–10.
+Total AIRQ score range: **0–10**.
 """)
 
     st.markdown("#### In the past 2 weeks, has coughing, wheezing, shortness of breath, or chest tightness:")
 
     q1_airq_en = st.radio(
         "1) Bothered you during the day on more than 4 days?",
-        options=[("No", 0), ("Yes", 1)], horizontal=True,
-        format_func=lambda x: x[0]
+        options=[("No", 0), ("Yes", 1)], horizontal=True, format_func=lambda x: x[0]
     )[1]
 
     q2_airq_en = st.radio(
         "2) Woken you up from sleep more than 1 time?",
-        options=[("No", 0), ("Yes", 1)], horizontal=True,
-        format_func=lambda x: x[0]
+        options=[("No", 0), ("Yes", 1)], horizontal=True, format_func=lambda x: x[0]
     )[1]
 
     q3_airq_en = st.radio(
         "3) Limited the activities you want to do every day?",
-        options=[("No", 0), ("Yes", 1)], horizontal=True,
-        format_func=lambda x: x[0]
+        options=[("No", 0), ("Yes", 1)], horizontal=True, format_func=lambda x: x[0]
     )[1]
 
     q4_airq_en = st.radio(
         "4) Caused you to use your rescue inhaler or nebulizer every day?",
-        options=[("No", 0), ("Yes", 1)], horizontal=True,
-        format_func=lambda x: x[0]
+        options=[("No", 0), ("Yes", 1)], horizontal=True, format_func=lambda x: x[0]
     )[1]
 
     st.markdown("#### In the past 2 weeks:")
 
     q5_airq_en = st.radio(
         "5) Did you have to limit your social activities (such as visiting with friends/relatives or playing with pets/children) because of your asthma?",
-        options=[("No", 0), ("Yes", 1)], horizontal=True,
-        format_func=lambda x: x[0]
+        options=[("No", 0), ("Yes", 1)], horizontal=True, format_func=lambda x: x[0]
     )[1]
 
     q6_airq_en = st.radio(
         "6) Did coughing, wheezing, shortness of breath, or chest tightness limit your ability to exercise?",
-        options=[("No", 0), ("Yes", 1)], horizontal=True,
-        format_func=lambda x: x[0]
+        options=[("No", 0), ("Yes", 1)], horizontal=True, format_func=lambda x: x[0]
     )[1]
 
     q7_airq_en = st.radio(
         "7) Did you feel that it was difficult to control your asthma?",
-        options=[("No", 0), ("Yes", 1)], horizontal=True,
-        format_func=lambda x: x[0]
+        options=[("No", 0), ("Yes", 1)], horizontal=True, format_func=lambda x: x[0]
     )[1]
 
     st.markdown("#### In the past 12 months, has coughing, wheezing, shortness of breath, or chest tightness:")
 
     q8_airq_en = st.radio(
         "8) Caused you to take steroid pills or shots, such as prednisone or methylprednisolone?",
-        options=[("No", 0), ("Yes", 1)], horizontal=True,
-        format_func=lambda x: x[0]
+        options=[("No", 0), ("Yes", 1)], horizontal=True, format_func=lambda x: x[0]
     )[1]
 
     q9_airq_en = st.radio(
         "9) Caused you to go to the emergency room or have unplanned visits to a health care provider?",
-        options=[("No", 0), ("Yes", 1)], horizontal=True,
-        format_func=lambda x: x[0]
+        options=[("No", 0), ("Yes", 1)], horizontal=True, format_func=lambda x: x[0]
     )[1]
 
     q10_airq_en = st.radio(
         "10) Caused you to stay in the hospital overnight?",
-        options=[("No", 0), ("Yes", 1)], horizontal=True,
-        format_func=lambda x: x[0]
+        options=[("No", 0), ("Yes", 1)], horizontal=True, format_func=lambda x: x[0]
     )[1]
 
     airq_en_score = (
@@ -530,70 +463,60 @@ with tab_airq_ar:
 كل إجابة **نعم = 1 نقطة**، و **لا = 0**. المجموع من 0 إلى 10.
 """)
 
-    st.markdown("#### في خلال الأسبوعين الماضيين، هل كان السعال، أو صوت الصفير عند التنفس، أو ضيق التنفس، أو الضيق في الصدر:")
+    st.markdown("#### " + rtl("في خلال الأسبوعين الماضيين، هل كان السعال، أو صوت الصفير عند التنفس، أو ضيق التنفس، أو الضيق في الصدر:"))
 
     q1_airq_ar = st.radio(
-        "1) هل أزعجتك خلال اليوم لأكثر من 4 أيام؟",
-        options=[("لا", 0), ("نعم", 1)], horizontal=True,
-        format_func=lambda x: x[0]
+        rtl("1) هل أزعجتك خلال اليوم لأكثر من 4 أيام؟"),
+        options=[(rtl("لا"), 0), (rtl("نعم"), 1)], horizontal=True, format_func=lambda x: x[0]
     )[1]
 
     q2_airq_ar = st.radio(
-        "2) هل أيقظك من النوم أكثر من مرة؟",
-        options=[("لا", 0), ("نعم", 1)], horizontal=True,
-        format_func=lambda x: x[0]
+        rtl("2) هل أيقظك من النوم أكثر من مرة؟"),
+        options=[(rtl("لا"), 0), (rtl("نعم"), 1)], horizontal=True, format_func=lambda x: x[0]
     )[1]
 
     q3_airq_ar = st.radio(
-        "3) هل قلّصت الأنشطة التي تريد القيام بها كل يوم؟",
-        options=[("لا", 0), ("نعم", 1)], horizontal=True,
-        format_func=lambda x: x[0]
+        rtl("3) هل قلّصت الأنشطة التي تريد القيام بها كل يوم؟"),
+        options=[(rtl("لا"), 0), (rtl("نعم"), 1)], horizontal=True, format_func=lambda x: x[0]
     )[1]
 
     q4_airq_ar = st.radio(
-        "4) هل تسبّب في استخدامك لجهاز الاستنشاق أو البخاخة كل يوم؟",
-        options=[("لا", 0), ("نعم", 1)], horizontal=True,
-        format_func=lambda x: x[0]
+        rtl("4) هل تسبّب في استخدامك لجهاز الاستنشاق أو البخاخة كل يوم؟"),
+        options=[(rtl("لا"), 0), (rtl("نعم"), 1)], horizontal=True, format_func=lambda x: x[0]
     )[1]
 
-    st.markdown("#### في آخر أسبوعين:")
+    st.markdown("#### " + rtl("في آخر أسبوعين:"))
 
     q5_airq_ar = st.radio(
-        "5) هل اضطررت للحد من أنشطتك الاجتماعية (مثل زيارة الأصدقاء/الأقارب أو اللعب مع الحيوانات الأليفة/الأطفال) بسبب الربو؟",
-        options=[("لا", 0), ("نعم", 1)], horizontal=True,
-        format_func=lambda x: x[0]
+        rtl("5) هل اضطررت للحد من أنشطتك الاجتماعية (مثل زيارة الأصدقاء/الأقارب أو اللعب مع الحيوانات الأليفة/الأطفال) بسبب الربو؟"),
+        options=[(rtl("لا"), 0), (rtl("نعم"), 1)], horizontal=True, format_func=lambda x: x[0]
     )[1]
 
     q6_airq_ar = st.radio(
-        "6) هل حدّ السعال أو الأزيز أو ضيق التنفس أو ضيق الصدر من قدرتك على ممارسة الرياضة؟",
-        options=[("لا", 0), ("نعم", 1)], horizontal=True,
-        format_func=lambda x: x[0]
+        rtl("6) هل حدّ السعال أو الأزيز أو ضيق التنفس أو ضيق الصدر من قدرتك على ممارسة الرياضة؟"),
+        options=[(rtl("لا"), 0), (rtl("نعم"), 1)], horizontal=True, format_func=lambda x: x[0]
     )[1]
 
     q7_airq_ar = st.radio(
-        "7) هل شعرتَ بصعوبة في السيطرة على الربو؟",
-        options=[("لا", 0), ("نعم", 1)], horizontal=True,
-        format_func=lambda x: x[0]
+        rtl("7) هل شعرتَ بصعوبة في السيطرة على الربو؟"),
+        options=[(rtl("لا"), 0), (rtl("نعم"), 1)], horizontal=True, format_func=lambda x: x[0]
     )[1]
 
-    st.markdown("#### في الأشهر الاثني عشر (12) الماضية، هل كان السعال أو الأزيز أو ضيق التنفس أو ضيق الصدر:")
+    st.markdown("#### " + rtl("في الأشهر الاثني عشر (12) الماضية، هل كان السعال أو الأزيز أو ضيق التنفس أو ضيق الصدر:"))
 
     q8_airq_ar = st.radio(
-        "8) هل تسبب في تناولك حبوبًا أو حقنًا كورتيزون؟",
-        options=[("لا", 0), ("نعم", 1)], horizontal=True,
-        format_func=lambda x: x[0]
+        rtl("8) هل تسبب في تناولك حبوبًا أو حقنًا كورتيزون؟"),
+        options=[(rtl("لا"), 0), (rtl("نعم"), 1)], horizontal=True, format_func=lambda x: x[0]
     )[1]
 
     q9_airq_ar = st.radio(
-        "9) هل تسبب في ذهابك إلى قسم الطوارئ أو زيارات غير مخطط لها لمقدم الرعاية الصحية؟",
-        options=[("لا", 0), ("نعم", 1)], horizontal=True,
-        format_func=lambda x: x[0]
+        rtl("9) هل تسبب في ذهابك إلى قسم الطوارئ أو زيارات غير مخطط لها لمقدم الرعاية الصحية؟"),
+        options=[(rtl("لا"), 0), (rtl("نعم"), 1)], horizontal=True, format_func=lambda x: x[0]
     )[1]
 
     q10_airq_ar = st.radio(
-        "10) هل تسبب في مكوثك في المستشفى طوال الليل؟",
-        options=[("لا", 0), ("نعم", 1)], horizontal=True,
-        format_func=lambda x: x[0]
+        rtl("10) هل تسبب في مكوثك في المستشفى طوال الليل؟"),
+        options=[(rtl("لا"), 0), (rtl("نعم"), 1)], horizontal=True, format_func=lambda x: x[0]
     )[1]
 
     airq_ar_score = (
@@ -603,19 +526,19 @@ with tab_airq_ar:
     )
     airq_ar_cat = airq_level(airq_ar_score)
 
-    st.markdown(f"### مجموع نقاط AIRQ: **{airq_ar_score}** — **{airq_ar_cat}**")
-    st.caption("التفسير: 0–1 = سيطرة جيدة، 2–4 = سيطرة غير جيدة، 5–10 = سيطرة ضعيفة جدًا.")
+    st.markdown(rtl(f"### مجموع نقاط AIRQ: **{airq_ar_score}** — **{airq_ar_cat}**"))
+    st.caption(rtl("التفسير: 0–1 = سيطرة جيدة، 2–4 = سيطرة غير جيدة، 5–10 = سيطرة ضعيفة جداً."))
 
     draw_airq_gauge(airq_ar_score, arabic=True)
 
     st.markdown("---")
     st.markdown("### المراجع (AIRQ)")
     st.markdown("""
-1. **Murphy KR**، Chipps B، Beuther DA، وآخرون.  
+1. Murphy KR وآخرون.  
    *Development of the asthma impairment and risk questionnaire (AIRQ): a composite control measure.*  
    J Allergy Clin Immunol Pract. 2020;8(7):2263–2274.e5.
 
-2. **Reibman J**، Chipps BE، Zeiger RS، وآخرون.  
+2. Reibman J وآخرون.  
    *Relationship between asthma control as measured by the Asthma Impairment and Risk Questionnaire (AIRQ) and patient perception of disease status, health-related quality of life, and treatment adherence.*  
    J Asthma Allergy. 2023;16:59–72.
 """)
