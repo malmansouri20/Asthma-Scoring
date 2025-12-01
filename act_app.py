@@ -160,6 +160,24 @@ def draw_airq_gauge(score: int, arabic: bool = False):
 
 st.set_page_config(page_title="Asthma Tools", layout="wide")
 
+# ---------- RTL CSS FOR ARABIC TABS ----------
+rtl_css = """
+<style>
+/* Make all text in Arabic tabs RTL and right-aligned */
+.arabic-container {
+    direction: rtl;
+    text-align: right;
+}
+
+/* Right-align radio buttons */
+div[role='radiogroup'] label {
+    direction: rtl !important;
+    text-align: right !important;
+}
+</style>
+"""
+st.markdown(rtl_css, unsafe_allow_html=True)
+
 st.title("Asthma Control & Risk Tools")
 
 tab_act_en, tab_act_ar, tab_airq_en, tab_airq_ar = st.tabs(
@@ -265,12 +283,31 @@ Each answer is scored from 1 to 5; higher total scores indicate better asthma co
 
 # ===================== ACT – ARABIC =====================
 with tab_act_ar:
+    with tab_act_ar:
+    st.markdown("<div class='arabic-container'>", unsafe_allow_html=True)
+
     st.header("اختبار السيطرة على الربو (ACT) – العربية")
 
     st.markdown("""
 اختبار السيطرة على الربو (من عمر 12 سنة فأكثر).  
 خلال الأسابيع الأربعة الماضية، يرجى اختيار الإجابة التي تصف حالتك.
 """)
+
+    # Q1
+    q1_ar = st.radio(
+        "1) خلال الأربعة أسابيع الأخيرة، كم من الوقت منعك مرض الربو من القيام بنشاطك في العمل أو المدرسة أو المنزل؟",
+        options=[
+            "كل الأوقات",
+            "أغلب الأوقات",
+            "أحياناً",
+            "أوقات قليلة",
+            "لم يحصل أبداً",
+        ]
+    )
+    
+    # (continue questions normally…)
+    
+    st.markdown("</div>", unsafe_allow_html=True)
 
     q1_ar = st.radio(
         rtl("1) خلال الأربعة أسابيع الأخيرة، كم من الوقت منعك مرض الربو من القيام بنشاطك في العمل أو المدرسة أو المنزل؟"),
@@ -452,11 +489,23 @@ Total AIRQ score range: **0–10**.
 
 # ===================== AIRQ – ARABIC =====================
 with tab_airq_ar:
+    st.markdown("<div class='arabic-container'>", unsafe_allow_html=True)
+
     st.header("استبيان اعتلال ومخاطر الربو (AIRQ) – العربية")
 
-    st.markdown("""
-للاستخدام من قبل مقدمي الرعاية الصحية لمرضاهم الذين تبلغ أعمارهم ١٢ عامًا فأكثر والذين شُخِّصوا بالربو.  
-يُستخدم استبيان اعتلال ومخاطر الربو (AIRQ) كجزء من زيارة عيادة الربو.  
+    st.markdown(
+للاستخدام من قبل مقدمي الرعاية الصحية لمرضاهم الذين تبلغ أعمارهم ١٢ عامًا فأكثر والذين شُخِّصوا بالربو  
+يُستخدم استبيان اعتلال ومخاطر الربو (AIRQ) كجزء من زيارة عيادة الربو)
+
+    q1_airq_ar = st.radio(
+        "1) هل أزعجتك خلال اليوم لأكثر من 4 أيام؟",
+        ["لا", "نعم"],
+        horizontal=True
+    )
+
+    # (continue questions)
+
+    st.markdown("</div>", unsafe_allow_html=True)  
 يُرجى الإجابة على كافة الأسئلة أدناه (نعم / لا).  
 كل إجابة **نعم = 1 نقطة**، و **لا = 0**. المجموع من 0 إلى 10.
 """)
