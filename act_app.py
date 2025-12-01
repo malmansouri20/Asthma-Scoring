@@ -3,6 +3,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 
+# For proper Arabic rendering in matplotlib
+try:
+    import arabic_reshaper
+    from bidi.algorithm import get_display
+
+    def rtl(text: str) -> str:
+        # reshape + reorder for correct RTL display
+        return get_display(arabic_reshaper.reshape(text))
+except ImportError:
+    # Fallback: if libraries not installed, just return text as-is
+    def rtl(text: str) -> str:
+        return text
+
 # ---------- ACT scoring helper ----------
 def act_level(score: int) -> str:
     if score <= 15:
@@ -21,14 +34,13 @@ def airq_level(score: int) -> str:
     else:
         return "Very poorly controlled"
 
-# ---------- ACT gauge (5–25) ----------
-def draw_act_gauge(score: int):
+# ---------- ACT gauge (5–25) — ENGLISH ----------
+def draw_act_gauge_en(score: int):
     fig, ax = plt.subplots(figsize=(10, 2))
 
     xmin, xmax = 5, 25
     xs = np.linspace(xmin, xmax, 500)
 
-    # RED → YELLOW → BLUE gradient
     cmap = LinearSegmentedColormap.from_list(
         "act_gradient",
         ["#EF4444", "#FDE047", "#3B82F6"]  # Red → Yellow → Blue
@@ -36,22 +48,22 @@ def draw_act_gauge(score: int):
 
     for i in range(len(xs) - 1):
         x_start = xs[i]
-        x_end = xs[i + 1]
+        x_end   = xs[i + 1]
         color = cmap(i / len(xs))
         ax.axvspan(x_start, x_end, 0.4, 0.6, color=color, alpha=0.9)
 
-    # Vertical boundaries between categories
+    # boundaries
     ax.axvline(15.5, 0.35, 0.65, color="black", linewidth=1)
     ax.axvline(19.5, 0.35, 0.65, color="black", linewidth=1)
 
-    # Score marker
+    # score marker
     ax.axvline(score, 0.35, 0.65, color="black", linewidth=4)
 
-    # Ticks 5–25
+    # ticks 5–25
     ax.set_xticks(range(5, 26))
     ax.set_xticklabels(range(5, 26), fontsize=6)
 
-    # Category labels
+    # English labels
     ax.text(10,   0.75, "Poorly controlled",    ha="center", fontsize=10)
     ax.text(17.5, 0.75, "Partially controlled", ha="center", fontsize=10)
     ax.text(23,   0.75, "Well controlled",      ha="center", fontsize=10)
@@ -64,6 +76,50 @@ def draw_act_gauge(score: int):
         spine.set_visible(False)
 
     st.pyplot(fig)
+
+# ---------- ACT gauge (5–25) — ARABIC ----------
+def draw_act_gauge_ar(score: int):
+    fig, ax = plt.subplots(figsize=(10, 2))
+
+    xmin, xmax = 5, 25
+    xs = np.linspace(xmin, xmax, 500)
+
+    cmap = LinearSegmentedColormap.from_list(
+        "act_gradient",
+        ["#EF4444", "#FDE047", "#3B82F6"]  # نفس التدرج: أحمر → أصفر → أزرق
+    )
+
+    for i in range(len(xs) - 1):
+        x_start = xs[i]
+        x_end   = xs[i + 1]
+        color = cmap(i / len(xs))
+        ax.axvspan(x_start, x_end, 0.4, 0.6, color=color, alpha=0.9)
+
+    # الحدود بين الفئات
+    ax.axvline(15.5, 0.35, 0.65, color="black", linewidth=1)
+    ax.axvline(19.5, 0.35, 0.65, color="black", linewidth=1)
+
+    # مؤشر المريض
+    ax.axvline(score, 0.35, 0.65, color="black", linewidth=4)
+
+    # التدريج من 5 إلى 25
+    ax.set_xticks(range(5, 26))
+    ax.set_xticklabels(range(5, 26), fontsize=6)
+
+    # تسميات عربية صحيحة باستخدام rtl()
+    ax.text(10,   0.75, rtl("سيطرة ضعيفة"),       ha="center", fontsize=10)
+    ax.text(17.5, 0.75, rtl("سيطرة جزئية"),       ha="center", fontsize=10)
+    ax.text(23,   0.75, rtl("سيطرة جيدة"),        ha="center", fontsize=10)
+
+    ax.set_xlim(xmin, xmax)
+    ax.set_yticks([])
+    ax.set_xlabel(rtl("مجموع نقاط ACT (5–25)"))
+
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+    st.pyplot(fig)
+
 
 # ---------- AIRQ gauge (0–10) ----------
 def draw_airq_gauge(score: int, arabic: bool = False):
@@ -113,6 +169,47 @@ def draw_airq_gauge(score: int, arabic: bool = False):
         spine.set_visible(False)
 
     st.pyplot(fig)
+# ---------- AIRQ gauge (0–10) ----------
+def draw_airq_gauge(score: int, arabic: bool = False):
+    fig, ax = plt.subplots(figsize=(10, 2))
+    xmin, xmax = 0, 10
+    xs = np.linspace(xmin, xmax, 500)
+
+    # Gradient BLUE → YELLOW → RED
+    cmap = LinearSegmentedColormap.from_list(
+        "airq_gradient",
+        ["#3B82F6", "#FDE047", "#EF4444"]
+    )
+
+    for i in range(len(xs) - 1):
+        ax.axvspan(xs[i], xs[i+1], 0.4, 0.6, color=cmap(i/len(xs)), alpha=0.9)
+
+    ax.axvline(1.5, 0.35, 0.65, color="black", linewidth=1)
+    ax.axvline(4.5, 0.35, 0.65, color="black", linewidth=1)
+    ax.axvline(score, 0.35, 0.65, color="black", linewidth=4)
+
+    ax.set_xticks(range(0, 11))
+    ax.set_xticklabels(range(0, 11), fontsize=6)
+
+    if not arabic:
+        ax.text(0.5,  0.75, "Well controlled", ha="center", fontsize=10)
+        ax.text(3.0,  0.75, "Not well controlled", ha="center", fontsize=10)
+        ax.text(7.5, 0.75, "Very poorly controlled", ha="center", fontsize=10)
+        ax.set_xlabel("AIRQ score (0–10)")
+    else:
+        ax.text(0.5,  0.75, rtl("سيطرة جيدة"),       ha="center", fontsize=10)
+        ax.text(3.0,  0.75, rtl("سيطرة غير جيدة"),   ha="center", fontsize=10)
+        ax.text(7.5, 0.75, rtl("سيطرة ضعيفة جداً"), ha="center", fontsize=10)
+        ax.set_xlabel(rtl("مجموع نقاط AIRQ (0–10)"))
+
+    ax.set_xlim(xmin, xmax)
+    ax.set_yticks([])
+
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+    st.pyplot(fig)
+
 
 # ---------- Streamlit config ----------
 st.set_page_config(page_title="Asthma Tools", layout="wide")
@@ -198,7 +295,7 @@ Each answer is scored from 1 to 5; higher total scores indicate better asthma co
     st.markdown(f"### ACT Score: **{act_en_score}** — **{act_en_level}**")
     st.caption("Possible score range: 5–25. Higher scores indicate better asthma control.")
 
-    draw_act_gauge(act_en_score)
+    draw_act_gauge_en(act_en_score)
 
     st.markdown("---")
     st.markdown("### References (ACT)")
@@ -300,7 +397,7 @@ with tab_act_ar:
     st.markdown(f"### مجموع نقاط ACT: **{act_ar_score}** — **{act_ar_level}**")
     st.caption("النطاق الممكن لمجموع النقاط: 5–25. كلما زادت النقاط دلّ ذلك على سيطرة أفضل على الربو.")
 
-    draw_act_gauge(act_ar_score)
+    draw_act_gauge_ar(act_ar_score)
 
     st.markdown("---")
     st.markdown("### المراجع (ACT)")
