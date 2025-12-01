@@ -46,7 +46,7 @@ def draw_act_gauge_en(score: int):
 
     ax.axvline(15.5, 0.35, 0.65, color="white", linewidth=1)
     ax.axvline(19.5, 0.35, 0.65, color="white", linewidth=1)
-    ax.axvline(score, 0.35, 0.65, color="white", linewidth=4)
+    ax.axvline(score, 0.35, 0.65, color="black", linewidth=4)
 
     ax.set_xticks(range(5, 26))
     ax.set_xticklabels(range(5, 26), fontsize=6)
@@ -79,7 +79,7 @@ def draw_act_gauge_ar(score: int):
 
     ax.axvline(15.5, 0.35, 0.65, color="white", linewidth=1)
     ax.axvline(19.5, 0.35, 0.65, color="white", linewidth=1)
-    ax.axvline(score, 0.35, 0.65, color="white", linewidth=4)
+    ax.axvline(score, 0.35, 0.65, color="black", linewidth=4)
 
     ax.set_xticks(range(5, 26))
     ax.set_xticklabels(range(5, 26), fontsize=6)
@@ -90,7 +90,7 @@ def draw_act_gauge_ar(score: int):
 
     ax.set_xlim(xmin, xmax)
     ax.set_yticks([])
-    ax.set_xlabel(rtl("مجموع نقاط ACT (5–25)"))
+    ax.set_xlabel(rtl("مجموع النقاط (5–25)"))
 
     for spine in ax.spines.values():
         spine.set_visible(False)
@@ -104,27 +104,39 @@ def draw_airq_gauge(score: int, arabic: bool=False):
     xmin, xmax = 0, 10
     xs = np.linspace(xmin, xmax, 500)
 
-    # RED → YELLOW → BLUE (match ACT)
+    # BLUE → YELLOW → RED (0 = well, 10 = very poorly controlled)
     cmap = LinearSegmentedColormap.from_list(
         "airq_gradient",
-        ["#EF4444", "#FDE047", "#3B82F6"]
+        ["#3B82F6", "#FDE047", "#EF4444"]  # Blue → Yellow → Red
     )
 
     for i in range(len(xs)-1):
         ax.axvspan(xs[i], xs[i+1], 0.4, 0.6, color=cmap(i/len(xs)), alpha=0.9)
 
+    # Boundaries for categories:
+    # 0–1  = well controlled
+    # 2–4  = not well controlled
+    # 5–10 = very poorly controlled
     ax.axvline(1.5, 0.35, 0.65, color="white", linewidth=1)
     ax.axvline(4.5, 0.35, 0.65, color="white", linewidth=1)
-    ax.axvline(score, 0.35, 0.65, color="white", linewidth=4)
+   
+   # Score marker
+    ax.axvline(score, 0.35, 0.65, color="black", linewidth=4)
 
+   # Ticks 0–10
     ax.set_xticks(range(0, 11))
     ax.set_xticklabels(range(0, 11), fontsize=6)
 
-    if arabic:
-        ax.text(0.5, 0.75, rtl("سيطرة ضعيفة جداً"), ha="center", fontsize=12)
+        if not arabic:
+        ax.text(0.5,  0.75, "Well controlled",        ha="center", fontsize=10)
+        ax.text(3.0,  0.75, "Not well controlled",    ha="center", fontsize=10)
+        ax.text(7.5,  0.75, "Very poorly controlled", ha="center", fontsize=10)
+        ax.set_xlabel("AIRQ score (0–10)")
+    else:
+        ax.text(0.5, 0.75, rtl("سيطرة جيدة"), ha="center", fontsize=12)
         ax.text(3.0, 0.75, rtl("سيطرة غير جيدة"), ha="center", fontsize=12)
-        ax.text(7.5, 0.75, rtl("سيطرة جيدة"), ha="center", fontsize=12)
-        ax.set_xlabel(rtl("مجموع نقاط AIRQ (0–10)"))
+        ax.text(7.5,  0.75, rtl("سيطرة ضعيفة جداً"),  ha="center", fontsize=12)
+        ax.set_xlabel(rtl("مجموع النقاط (0–10)"))
     else:
         ax.text(0.5, 0.75, "Poorly controlled", ha="center", fontsize=10)
         ax.text(3.0, 0.75, "Not well controlled", ha="center", fontsize=10)
@@ -222,7 +234,7 @@ with tab_act_ar:
              [1,2,3,4,5][ ["3 مرات أو أكثر في اليوم","مرة أو مرتين في اليوم","2 أو 3 مرات في الأسبوع","مرة واحدة في الأسبوع أو أقل","لم يحصل أبداً"].index(q4) ] + \
              [1,2,3,4,5][ ["تحكّم مفقود","تحكّم ضعيف","تحكّم متواضع","تحكّم جيد","تحكّم شامل"].index(q5) ]
 
-    st.markdown(f"### مجموع نقاط ACT: **{score}** — **{rtl(act_level(score))}**")
+    st.markdown(f"### مجموع النقاط ACT: **{score}** — **{rtl(act_level(score))}**")
     draw_act_gauge_ar(score)
 
     st.markdown("</div>", unsafe_allow_html=True)
@@ -287,6 +299,6 @@ with tab_airq_ar:
 
     score = sum([1 if ans=="نعم" else 0 for ans in q])
 
-    st.markdown(f"### مجموع نقاط AIRQ: **{score}** — **{rtl(airq_level(score))}**")
+    st.markdown(f"### مجموع النقاط AIRQ: **{score}** — **{rtl(airq_level(score))}**")
 
     draw_airq_gauge(score, arabic=True)
