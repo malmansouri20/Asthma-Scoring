@@ -27,7 +27,7 @@ def airq_level(score: int) -> str:
     elif score <= 4:
         return "Not well controlled"
     else:
-        return "Very poorly controlled"
+        return "Poorly controlled"
 
 # ---------- ACT Gauges (English & Arabic) ----------
 
@@ -44,9 +44,9 @@ def draw_act_gauge_en(score: int):
     for i in range(len(xs)-1):
         ax.axvspan(xs[i], xs[i+1], 0.4, 0.6, color=cmap(i/len(xs)), alpha=0.9)
 
-    ax.axvline(15.5, 0.35, 0.65, color="black", linewidth=1)
-    ax.axvline(19.5, 0.35, 0.65, color="black", linewidth=1)
-    ax.axvline(score, 0.35, 0.65, color="black", linewidth=4)
+    ax.axvline(15.5, 0.35, 0.65, color="white", linewidth=1)
+    ax.axvline(19.5, 0.35, 0.65, color="white", linewidth=1)
+    ax.axvline(score, 0.35, 0.65, color="white", linewidth=4)
 
     ax.set_xticks(range(5, 26))
     ax.set_xticklabels(range(5, 26), fontsize=6)
@@ -77,9 +77,9 @@ def draw_act_gauge_ar(score: int):
     for i in range(len(xs)-1):
         ax.axvspan(xs[i], xs[i+1], 0.4, 0.6, color=cmap(i/len(xs)), alpha=0.9)
 
-    ax.axvline(15.5, 0.35, 0.65, color="black", linewidth=1)
-    ax.axvline(19.5, 0.35, 0.65, color="black", linewidth=1)
-    ax.axvline(score, 0.35, 0.65, color="black", linewidth=4)
+    ax.axvline(15.5, 0.35, 0.65, color="white", linewidth=1)
+    ax.axvline(19.5, 0.35, 0.65, color="white", linewidth=1)
+    ax.axvline(score, 0.35, 0.65, color="white", linewidth=4)
 
     ax.set_xticks(range(5, 26))
     ax.set_xticklabels(range(5, 26), fontsize=6)
@@ -107,15 +107,15 @@ def draw_airq_gauge(score: int, arabic: bool=False):
     # RED → YELLOW → BLUE (match ACT)
     cmap = LinearSegmentedColormap.from_list(
         "airq_gradient",
-        ["#3B82F6", "#FDE047", "#EF4444"]
+        ["#EF4444", "#FDE047", "#3B82F6"]
     )
 
     for i in range(len(xs)-1):
         ax.axvspan(xs[i], xs[i+1], 0.4, 0.6, color=cmap(i/len(xs)), alpha=0.9)
 
-    ax.axvline(1.5, 0.35, 0.65, color="black", linewidth=1)
-    ax.axvline(4.5, 0.35, 0.65, color="black", linewidth=1)
-    ax.axvline(score, 0.35, 0.65, color="black", linewidth=4)
+    ax.axvline(1.5, 0.35, 0.65, color="white", linewidth=1)
+    ax.axvline(4.5, 0.35, 0.65, color="white", linewidth=1)
+    ax.axvline(score, 0.35, 0.65, color="white", linewidth=4)
 
     ax.set_xticks(range(0, 11))
     ax.set_xticklabels(range(0, 11), fontsize=6)
@@ -126,7 +126,7 @@ def draw_airq_gauge(score: int, arabic: bool=False):
         ax.text(7.5, 0.75, rtl("سيطرة جيدة"), ha="center", fontsize=12)
         ax.set_xlabel(rtl("مجموع نقاط AIRQ (0–10)"))
     else:
-        ax.text(0.5, 0.75, "Very poorly controlled", ha="center", fontsize=10)
+        ax.text(0.5, 0.75, "Poorly controlled", ha="center", fontsize=10)
         ax.text(3.0, 0.75, "Not well controlled", ha="center", fontsize=10)
         ax.text(7.5, 0.75, "Well controlled", ha="center", fontsize=10)
         ax.set_xlabel("AIRQ score (0–10)")
