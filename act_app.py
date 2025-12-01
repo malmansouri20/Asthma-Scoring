@@ -289,4 +289,4 @@ with tab_airq_ar:
 
     st.markdown(f"### مجموع نقاط AIRQ: **{score}** — **{rtl(airq_level(score))}**")
 
-    draw_airq_gauge(score, arabic=True
+    draw_airq_gauge(score, arabic=True)
